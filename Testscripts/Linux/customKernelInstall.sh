@@ -72,6 +72,18 @@ function CheckInstallLockUbuntu() {
     fi
 }
 
+function RemoveInstallLockUbuntu() {
+    deb_lock_files=(/var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock /var/lib/dpkg/lock-frontend)
+    for lock in ${deb_lock_files[@]}
+    do
+        if [ -f "$lock" ] && [ "$(lsof $lock | grep -c $lock)" -gt 0 ]; then
+            killall apt apt-get dpkg
+            rm -f "$lock" > /dev/null 2&>1
+        fi
+    done
+    dpkg_configure
+}
+
 function Install_Build_Deps {
     #
     # Installing packages required for the build process
