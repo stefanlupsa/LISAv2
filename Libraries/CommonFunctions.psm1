@@ -1617,6 +1617,18 @@ function Set-GuestInterface {
         return $False
     }
 
+    # Fix for unable to resolve host LISAv2 when runing as sudo for the 1st time
+    try {
+        Run-LinuxCmd -username $VMUser -password $VMPassword -ip $VMIpv4 -port $VMPort -command "ls" -runAsSudo `
+            -ignoreLinuxExitCode -maxRetryCount 2 -WriteHostOnly $True -NoLogsPlease $True
+    } catch {
+        $line = $_.InvocationInfo.ScriptLineNumber
+        $script_name = ($_.InvocationInfo.ScriptName).Replace($PWD, ".")
+        $ErrorMessage = $_.Exception.Message
+        Write-LogErr "EXCEPTION : $ErrorMessage"
+        Write-LogErr "Source : Line $line in script $script_name."
+    }
+
     # Configure NIC on the guest
     Write-LogInfo "Configuring test interface ($InterfaceMAC) on $VMName ($VMIpv4)"
     # Get the interface name that corresponds to the MAC address
